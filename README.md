@@ -33,10 +33,10 @@ Since this is a custom tool, you install it as an "Unpacked Extension":
 
 1.  Open any video on the [Dreaming Spanish](https://www.dreamingspanish.com) website.
 2.  **Refresh the page** (essential so the extension can catch the initial network request).
-3.  Click the extension icon (🧩) in your browser bar.
-4.  Click **"Copy Text"**.
-5.  The extension will copy the clean transcript and open a new LingQ import tab.
-6.  Paste (`Ctrl+V`) and save!
+3.  **Click the Extension Icon** (subtitles logo) in your browser toolbar.
+    - _Note: There is no menu. The script runs immediately upon clicking the icon._
+4.  A new **LingQ Import** tab will open automatically.
+5.  Click the text box, Paste (`Ctrl+V`), and Save!
 
 ## 💻 Tech Stack
 
@@ -44,4 +44,5 @@ Since this is a custom tool, you install it as an "Unpacked Extension":
 - **Chrome Extension API (Manifest V3)**
 - **TextDecoder API** (Binary Stream Handling)
 - **Regex** (Data Cleaning)
+
 # Dreaming-Spanish-VTT-Extractor
