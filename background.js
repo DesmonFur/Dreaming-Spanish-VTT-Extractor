@@ -1,7 +1,6 @@
 chrome.webRequest.onBeforeRequest.addListener(
-  function (details) {
+  (details) => {
     if (details.url.includes(".webvtt")) {
-      console.log("VTT Found:", details.url);
       chrome.storage.local.set({ latestVttUrl: details.url });
     }
   },
@@ -13,7 +12,7 @@ chrome.action.onClicked.addListener(async (tab) => {
   const url = result.latestVttUrl;
 
   if (!url) {
-    console.log("No VTT found yet.");
+    console.log("No VTT found.");
     return;
   }
 
@@ -29,18 +28,72 @@ chrome.action.onClicked.addListener(async (tab) => {
       .replace(/^\d+\s*$/gm, "")
       .replace(/\n+/g, " ");
 
+    const titleResults = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () =>
+        document.querySelector("h1")?.innerText || "Dreaming Spanish Lesson",
+    });
+    const pageTitle = titleResults[0].result;
+
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: (text) => {
-        navigator.clipboard.writeText(text);
-        alert("Copied!");
-      },
+      func: (text) => navigator.clipboard.writeText(text),
       args: [cleanText],
     });
 
-    chrome.tabs.create({
-      url: "https://www.lingq.com/en/learn/es/web/editor/",
-    });
+    chrome.tabs.create(
+      { url: "https://www.lingq.com/en/learn/es/web/editor/" },
+      (newTab) => {
+        chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+          if (tabId === newTab.id && info.status === "complete") {
+            chrome.tabs.onUpdated.removeListener(listener);
+
+            chrome.scripting.executeScript({
+              target: { tabId: newTab.id },
+              func: (title, body) => {
+                const waitFor = (selector) => {
+                  return new Promise((resolve) => {
+                    if (document.querySelector(selector))
+                      return resolve(document.querySelector(selector));
+                    const observer = new MutationObserver(() => {
+                      if (document.querySelector(selector)) {
+                        observer.disconnect();
+                        resolve(document.querySelector(selector));
+                      }
+                    });
+                    observer.observe(document.body, {
+                      childList: true,
+                      subtree: true,
+                    });
+                  });
+                };
+
+                waitFor(".title-section input").then((input) => {
+                  input.focus();
+                  input.value = title;
+                  input.dispatchEvent(new Event("input", { bubbles: true }));
+                });
+
+                waitFor(".public-DraftEditor-content").then((editor) => {
+                  editor.focus();
+
+                  const pasteEvent = new ClipboardEvent("paste", {
+                    bubbles: true,
+                    cancelable: true,
+                    clipboardData: new DataTransfer(),
+                  });
+
+                  pasteEvent.clipboardData.setData("text/plain", body);
+
+                  editor.dispatchEvent(pasteEvent);
+                });
+              },
+              args: [pageTitle, cleanText],
+            });
+          }
+        });
+      }
+    );
   } catch (err) {
     console.error("Error:", err);
   }

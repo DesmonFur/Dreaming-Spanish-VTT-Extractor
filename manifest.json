@@ -3,7 +3,11 @@
   "name": "VTT Snatcher",
   "version": "1.0",
   "permissions": ["webRequest", "storage", "activeTab", "scripting"],
-  "host_permissions": ["https://app.dreaming.com/*", "https://*.netlify.app/*"],
+  "host_permissions": [
+    "https://app.dreaming.com/*",
+    "https://*.netlify.app/*",
+    "https://www.lingq.com/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
